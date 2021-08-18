@@ -13,11 +13,11 @@ class Response {
 		std::string charset      = "utf-8";
 		std::string content      = "";
 
-		Response *const type(const std::string &content_type);
-		Response *const status(const int &status_code);
+		Response& type(const std::string &content_type);
+		Response& status(const int &status_code);
 
-		const bool isSent() const;
-		const bool isRedirected() const;
+		bool isSent() const;
+		bool isRedirected() const;
 
 		void json(const std::string &content);
 		void send();
@@ -28,7 +28,7 @@ class Response {
 		const int &connection;
 		bool sent = false;
 
-		const bool throwIsSent() const;
+		bool throwIsSent() const;
 		std::string getHead();
 		std::string getContentType();
 		std::string getCharset();

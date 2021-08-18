@@ -14,8 +14,8 @@
  * @param router     Router to use.
  * @param connection Connection to respond to.
  */
-void respond(CoreRouter *const router, int connection) {
-	router -> respond(connection);
+void respond(CoreRouter &router, int connection) {
+	router.respond(connection);
 	close(connection);
 }
 
@@ -24,7 +24,7 @@ void respond(CoreRouter *const router, int connection) {
  * @param port        Port to listen on.
  * @param connections Number of parallel allowed connections.
  */
-CoreServer::CoreServer(CoreRouter *const router, const unsigned int port, const unsigned int connections):
+CoreServer::CoreServer(CoreRouter &router, const unsigned int port, const unsigned int connections):
 	router(router), port(port), connections(connections) {
 		this -> createSocket(this -> server);
 		this -> configureSocket(this -> server);
@@ -38,8 +38,8 @@ CoreServer::CoreServer(CoreRouter *const router, const unsigned int port, const 
  * @param url   Request url.
  * @param route Route method.
  */
-void CoreServer::get(const std::string &url, void (*route)(const Request *const, Response *const)) {
-	router -> route("GET", url, route);
+void CoreServer::get(const std::string &url, void (*route)(const Request&, Response&)) {
+	router.route("GET", url, route);
 }
 
 /**
@@ -47,8 +47,8 @@ void CoreServer::get(const std::string &url, void (*route)(const Request *const,
  * @param url   Request url.
  * @param route Route method.
  */
-void CoreServer::post(const std::string &url, void (*route)(const Request *const, Response *const)) {
-	router -> route("POST", url, route);
+void CoreServer::post(const std::string &url, void (*route)(const Request&, Response&)) {
+	router.route("POST", url, route);
 }
 
 /**

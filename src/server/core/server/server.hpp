@@ -10,18 +10,18 @@
 
 class CoreServer {
 	public:
-		CoreServer(CoreRouter *const router, const unsigned int port, const unsigned int connections);
+		CoreServer(CoreRouter &router, const unsigned int port, const unsigned int connections);
 
 		// Routes.
-		void get(const std::string &url, void (*route)(const Request *const, Response *const));
+		void get(const std::string &url, void (*route)(const Request&, Response&));
 		void get(const std::string &url, const std::string &content);
-		void post(const std::string &url, void (*route)(const Request *const, Response *const));
+		void post(const std::string &url, void (*route)(const Request&, Response&));
 		void post(const std::string &url, const std::string &content);
 
 		int start();
 
 	private:
-		CoreRouter *const router;
+		CoreRouter &router;
 
 		const unsigned int port;
 		const unsigned int connections;

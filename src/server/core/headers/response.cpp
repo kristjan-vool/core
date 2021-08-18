@@ -30,10 +30,10 @@ void Response::json(const std::string &content) {
  * @param  content_type Content-Type to set for headers.
  * @return              self.
  */
-Response *const Response::type(const std::string &content_type) {
+Response& Response::type(const std::string &content_type) {
 	this -> throwIsSent();
 	this -> content_type = content_type;
-	return this;
+	return *this;
 }
 
 /**
@@ -41,10 +41,10 @@ Response *const Response::type(const std::string &content_type) {
  * @param  status_code HTTP status code.
  * @return             self.
  */
-Response *const Response::status(const int &status_code) {
+Response& Response::status(const int &status_code) {
 	this -> throwIsSent();
 	this -> status_code = status_code;
-	return this;
+	return *this;
 }
 
 /**
@@ -173,7 +173,7 @@ void Response::send(const std::string &content) {
  * Check wether response headers are already sent.
  * @return true and throw exception when sent.
  */
-const bool Response::throwIsSent() const {
+bool Response::throwIsSent() const {
 	if (this -> sent) {
 		throw std::runtime_error("Error: Response headers already sent.");
 	}
@@ -185,7 +185,7 @@ const bool Response::throwIsSent() const {
  * Check wether response headers are already sent.
  * @return true and throw exception when sent.
  */
-const bool Response::isSent() const {
+bool Response::isSent() const {
 	return this -> sent;
 }
 
@@ -193,6 +193,6 @@ const bool Response::isSent() const {
  * Check wether response is redirected.
  * @return true if redirected.
  */
-const bool Response::isRedirected() const {
+bool Response::isRedirected() const {
 	return this -> status_code >= 300 && this -> status_code < 400;
 }

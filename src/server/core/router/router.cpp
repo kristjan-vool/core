@@ -12,7 +12,7 @@
  * @param url   of the route.
  * @param route method that responds to the connection.
  */
-void CoreRouter::route(const std::string &method, const std::string &url, void (*route)(const Request *const, Response *const)) {
+void CoreRouter::route(const std::string &method, const std::string &url, void (*route)(const Request&, Response&)) {
 	this -> routes[method][url] = route;
 }
 
@@ -31,15 +31,15 @@ void CoreRouter::respond(const int &connection) {
 	}
 
 	// Generate request headers.
-	const Request *const request = new Request(request_header);
+	const Request request = Request(request_header);
 
 	// Valid request.
-	if (request -> isValid()) {
-		Response *const response = new Response(connection);
+	if (request.isValid()) {
+		Response response = Response(connection);
 
 		// Check if method is allowed.
-		if (this -> routes.find(request -> method) != this -> routes.end()) {
-			auto routes = this -> routes.at(request -> method);
+		if (this -> routes.find(request.method) != this -> routes.end()) {
+			auto routes = this -> routes.at(request.method);
 
 			// Check if route is allowed.
 			// route -> first is route regex.
@@ -47,11 +47,11 @@ void CoreRouter::respond(const int &connection) {
 			for (auto route = routes.begin(); route != routes.end(); route++) {
 				std::regex r(route -> first);
 				std::smatch match;
-				std::regex_search(request -> url.begin(), request -> url.end(), match, r);
+				std::regex_search(request.url.begin(), request.url.end(), match, r);
 
 				// Route regex matches request url.
 				if (match.size() > 0) {
-					this -> routes.at(request -> method).at(route -> first)(request, response);
+					this -> routes.at(request.method).at(route -> first)(request, response);
 
 					// Route found, break routes looping.
 					break;
@@ -59,17 +59,13 @@ void CoreRouter::respond(const int &connection) {
 			}
 
 			// Route not found, respond with 404.
-			if (!response -> isSent()) {
-				response -> status(404) -> send();
+			if (!response.isSent()) {
+				response.status(404).send();
 			}
 
 		// Invalid request, respond with 404.
 		} else {
-			response -> status(404) -> send();
+			response.status(404).send();
 		}
-
-		delete(response);
 	}
-
-	delete(request);
 }
