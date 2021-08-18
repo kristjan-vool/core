@@ -136,10 +136,10 @@ int CoreServer::start() {
 
 		// Connection found.
 		if (connection != -1) {
-			std::thread thread(respond, router, connection);
-			thread.detach();
+			// std::thread thread(respond, router, connection);
+			// thread.detach();
 
-			// respond(router, connection);
+			respond(router, connection);
 
 		// Connection not found.
 		} else {
