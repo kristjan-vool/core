@@ -25,7 +25,8 @@ void CoreRouter::respond(const int &connection) {
 	std::string request_header = "";
 
 	// Read request header without content by 1 char until 2 newlines.
-	while (end != 4 && read(connection , &buffer, 1)) {
+	while (end != 4) {
+		read(connection , &buffer, 1);
 		end = (buffer == 10 || buffer == 13) ? end + 1 : 0;
 		request_header += buffer;
 	}

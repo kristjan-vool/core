@@ -7,7 +7,7 @@
  * HTTP Request Headers.
  * @param request Request headers text.
  */
-Request::Request(const std::string &request):
+Request::Request(const std::string& request):
 	method (this -> setHead(request, 1)),
 	url    (this -> setURL(this -> setHead(request, 2))),
 	version(this -> setHead(request, 3)),
@@ -25,7 +25,7 @@ nlohmann::json Request::setData(const std::string& request) {
 	return {};
 }
 
-std::string Request::setURL(const std::string &url) {
+std::string Request::setURL(const std::string& url) {
 	return url.compare("/") == 0 ? "/index" : url;
 }
 
@@ -43,14 +43,10 @@ const bool Request::isValid() const {
  * @param  pos     Position of head to extract.
  * @return         Head part from given position.
  */
-std::string Request::setHead(const std::string &request, const long unsigned int pos) {
-	std::regex r("^(.*) (.*) (.*)\r\n");
-	std::smatch match;
-	std::regex_search(request.begin(), request.end(), match, r);
+std::string Request::setHead(const std::string& request, const int& position) {
+	std::regex regex("^(.*) (.*) (.*)\r\n");
+	std::smatch matches;
+	std::regex_search(request, matches, regex);
 
-	if (match.size() >= pos + 1) {
-		return match[pos];
-	} else {
-		return "";
-	}
+	return matches[position];
 }

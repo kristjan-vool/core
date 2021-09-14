@@ -10,7 +10,7 @@
  * HTTP Response Headers.
  * @param connection Request connection where to respond.
  */
-Response::Response(const int &connection):
+Response::Response(const int& connection):
 	connection(connection) {
 }
 
@@ -18,7 +18,7 @@ Response::Response(const int &connection):
  * Send response to the request as JSON.
  * @param content JSON string.
  */
-void Response::json(const std::string &content) {
+void Response::json(const std::string& content) {
 	this -> throwIsSent();
 	this -> content_type = "application/json";
 	this -> content = content;
@@ -30,7 +30,7 @@ void Response::json(const std::string &content) {
  * @param  content_type Content-Type to set for headers.
  * @return              self.
  */
-Response& Response::type(const std::string &content_type) {
+Response& Response::type(const std::string& content_type) {
 	this -> throwIsSent();
 	this -> content_type = content_type;
 	return *this;
@@ -41,7 +41,7 @@ Response& Response::type(const std::string &content_type) {
  * @param  status_code HTTP status code.
  * @return             self.
  */
-Response& Response::status(const int &status_code) {
+Response& Response::status(const unsigned int& status_code) {
 	this -> throwIsSent();
 	this -> status_code = status_code;
 	return *this;
@@ -51,7 +51,7 @@ Response& Response::status(const int &status_code) {
  * Default response redirect.
  * @param url to redirect to.
  */
-void Response::redirect(const std::string &url) {
+void Response::redirect(const std::string& url) {
 	this -> throwIsSent();
 	this -> status_code = 302;
 	this -> content = url;
@@ -164,7 +164,7 @@ void Response::send() {
  * Send response to the request.
  * @param content Content to send to the request.
  */
-void Response::send(const std::string &content) {
+void Response::send(const std::string& content) {
 	this -> content = content;
 	this -> send();
 }
@@ -194,5 +194,5 @@ bool Response::isSent() const {
  * @return true if redirected.
  */
 bool Response::isRedirected() const {
-	return this -> status_code >= 300 && this -> status_code < 400;
+	return 300 <= status_code < 400;
 }
