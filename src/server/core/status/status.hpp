@@ -86,7 +86,7 @@ namespace Status {
 		{599, "Network Connect Timeout Error"}
 	};
 
-	static std::string &get(const unsigned int code) {
+	static std::string& get(const unsigned int code) {
 		return status.at(code);
 	}
 };

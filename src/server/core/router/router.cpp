@@ -12,7 +12,7 @@
  * @param url   of the route.
  * @param route method that responds to the connection.
  */
-void CoreRouter::route(const std::string &method, const std::string &url, void (*route)(const Request&, Response&)) {
+void CoreRouter::route(const std::string& method, const std::string& url, void (*route)(const Request&, Response&)) {
 	this -> routes[method][url] = route;
 }
 
@@ -20,7 +20,7 @@ void CoreRouter::route(const std::string &method, const std::string &url, void (
  * Respond to the request connection.
  * @param connection Client request.
  */
-void CoreRouter::respond(const int &connection) {
+void CoreRouter::respond(const int& connection) {
 	char buffer; int end = 0;
 	std::string request_header = "";
 

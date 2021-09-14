@@ -194,5 +194,5 @@ bool Response::isSent() const {
  * @return true if redirected.
  */
 bool Response::isRedirected() const {
-	return 300 <= status_code < 400;
+	return this -> status_code >= 300 && this -> status_code < 400;
 }
