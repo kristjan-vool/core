@@ -10,7 +10,19 @@
 Request::Request(const std::string &request):
 	method (this -> setHead(request, 1)),
 	url    (this -> setURL(this -> setHead(request, 2))),
-	version(this -> setHead(request, 3)) {
+	version(this -> setHead(request, 3)),
+	data(this -> setData(request)) {
+}
+
+nlohmann::json Request::setData(const std::string& request) {
+	std::regex regex("(.+)$");
+	std::smatch matches;
+
+	if (std::regex_search(request, matches, regex)) {
+		return nlohmann::json::parse(matches[0].str());
+	}
+
+	return {};
 }
 
 std::string Request::setURL(const std::string &url) {

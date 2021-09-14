@@ -24,10 +24,24 @@ void CoreRouter::respond(const int &connection) {
 	char buffer; int end = 0;
 	std::string request_header = "";
 
-	// Read request header by 1 char until 2 newlines.
+	// Read request header without content by 1 char until 2 newlines.
 	while (end != 4 && read(connection , &buffer, 1)) {
 		end = (buffer == 10 || buffer == 13) ? end + 1 : 0;
 		request_header += buffer;
+	}
+
+	std::smatch matches;
+	std::regex regex("Content-Length: (.+)");
+
+	// Find content length.
+	if (std::regex_search(request_header, matches, regex)) {
+		int content_length = std::stoi(matches[1].str());
+
+		// Read content to request header.
+		for (int i = 0; i < content_length; i++) {
+			read(connection , &buffer, 1);
+			request_header += buffer;
+		}
 	}
 
 	// Generate request headers.
