@@ -17,18 +17,19 @@ Request::Request(const std::string& request):
 
 nlohmann::json Request::setCookies(const std::string& request) {
 	nlohmann::json cookies_json;
-	std::regex regex("Cookie: (.*)");
 	std::smatch matches;
+	std::regex
+		regex_cookies("Cookie: (.*)"),
+		regex_cookie("(.*)=(.*)");
 
 	// Extract cookies string from request header.
-	if (std::regex_search(request, matches, regex)) {
+	if (std::regex_search(request, matches, regex_cookies)) {
 		std::string cookies = matches[1].str() + "; ";
 		size_t pos = 0;
 
 		// Split cookies by ;
 		while ((pos = cookies.find("; ")) != std::string::npos) {
 			std::string cookie = cookies.substr(0, pos);
-			std::regex regex_cookie("(.*)=(.*)");
 
 			// Find cookie key and value with regex.
 			if (std::regex_search(cookie, matches, regex_cookie)) {
