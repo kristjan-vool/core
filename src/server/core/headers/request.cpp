@@ -3,24 +3,26 @@
 #include <ostream>
 #include <regex>
 
+static std::regex regex_cookies("Cookie: (.*)");
+static std::regex regex_cookie("(.*)=(.*)");
+static std::regex regex_head("^(.*) (.*) (.*)\r\n");
+static std::regex regex_data("(.+)$");
+
 /**
  * HTTP Request Headers.
  * @param request Request headers text.
  */
 Request::Request(const std::string& request):
-	method (this -> setHead(request, 1)),
-	url    (this -> setURL(this -> setHead(request, 2))),
-	version(this -> setHead(request, 3)),
-	data(this -> setData(request)),
-	cookies(this -> setCookies(request)) {
+	method (setHead(request, 1)),
+	url    (setHead(request, 2)),
+	version(setHead(request, 3)),
+	data   (setData(request)),
+	cookies(setCookies(request)) {
 }
 
 nlohmann::json Request::setCookies(const std::string& request) {
 	nlohmann::json cookies_json;
 	std::smatch matches;
-	std::regex
-		regex_cookies("Cookie: (.*)"),
-		regex_cookie("(.*)=(.*)");
 
 	// Extract cookies string from request header.
 	if (std::regex_search(request, matches, regex_cookies)) {
@@ -58,18 +60,15 @@ nlohmann::json Request::setCookies(const std::string& request) {
 }
 
 nlohmann::json Request::setData(const std::string& request) {
-	std::regex regex("(.+)$");
 	std::smatch matches;
 
-	if (std::regex_search(request, matches, regex)) {
-		return nlohmann::json::parse(matches[0].str());
-	}
+	try {
+		if (std::regex_search(request, matches, regex_data)) {
+			return nlohmann::json::parse(matches[0].str());
+		}
+	} catch (...) {}
 
 	return {};
-}
-
-std::string Request::setURL(const std::string& url) {
-	return url.compare("/") == 0 ? "/index" : url;
 }
 
 /**
@@ -87,9 +86,8 @@ const bool Request::isValid() const {
  * @return         Head part from given position.
  */
 std::string Request::setHead(const std::string& request, const int& position) {
-	std::regex regex("^(.*) (.*) (.*)\r\n");
 	std::smatch matches;
-	std::regex_search(request, matches, regex);
+	std::regex_search(request, matches, regex_head);
 
 	return matches[position];
 }

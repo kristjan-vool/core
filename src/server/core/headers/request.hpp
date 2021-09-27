@@ -18,7 +18,6 @@ class Request {
 
 	private:
 		std::string setHead(const std::string &request, const int& position);
-		std::string setURL(const std::string &url);
 		nlohmann::json setData(const std::string& request);
 		nlohmann::json setCookies(const std::string& request);
 };

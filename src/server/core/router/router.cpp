@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <regex>
 
+static std::regex regex_content("Content-Length: (.+)");
+
 /**
  * Add route to the list of routes.
  * @param url   of the route.
@@ -32,10 +34,10 @@ void CoreRouter::respond(const int& connection) {
 	}
 
 	std::smatch matches;
-	std::regex regex("Content-Length: (.+)");
+
 
 	// Find content length.
-	if (std::regex_search(request_header, matches, regex)) {
+	if (std::regex_search(request_header, matches, regex_content)) {
 		int content_length = std::stoi(matches[1].str());
 
 		// Read content to request header.
