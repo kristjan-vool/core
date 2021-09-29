@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <map>
+
 class Response {
 	public:
 		Response(const int& connection);
@@ -19,22 +21,27 @@ class Response {
 		bool isSent() const;
 		bool isRedirected() const;
 
-		void json(const std::string& content);
+		void sendJSON(const std::string& json);
 		void send();
 		void send(const std::string& content);
 		void redirect(const std::string& url);
 
+		void setCookie(const std::string &key, const std::string& value);
+		void setCookie(const std::string &key, const std::string& value, const std::string& path, const int& age);
+
 	private:
 		const int& connection;
 		bool sent = false;
+		std::map<std::string, std::map<std::string, std::string>> cookies;
 
 		bool throwIsSent() const;
-		std::string getHead();
-		std::string getContentType();
-		std::string getCharset();
-		std::string getContentLength();
-		std::string getRedirect();
-		std::string getContent();
+		std::string getHead() const;
+		std::string getContentType() const;
+		std::string getCharset() const;
+		std::string getContentLength() const;
+		std::string getRedirect() const;
+		std::string getContent() const;
+		std::string getCookies() const;
 };
 
 #endif

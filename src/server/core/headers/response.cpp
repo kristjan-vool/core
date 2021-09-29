@@ -15,13 +15,39 @@ Response::Response(const int& connection):
 }
 
 /**
+ * Set cookie from boolean, int, string or null value.
+ * @param key   - Cookie key.
+ * @param value - Cookie value.
+ */
+void Response::setCookie(const std::string& key, const std::string& value) {
+	std::map<std::string, std::string> cookie;
+	cookie["cookie"] = value;
+
+	this -> cookies[key] = cookie;
+}
+
+/**
+ * Set cookie from boolean, int, string or null value with Max-Age.
+ * @param key   - Cookie key.
+ * @param value - Cookie value.
+ */
+void Response::setCookie(const std::string& key, const std::string& value, const std::string& path, const int& age) {
+	std::map<std::string, std::string> cookie;
+	cookie["cookie"] = value;
+	cookie["path"] = path;
+	cookie["age"] = std::to_string(age);
+
+	this -> cookies[key] = cookie;
+}
+
+/**
  * Send response to the request as JSON.
  * @param content JSON string.
  */
-void Response::json(const std::string& content) {
+void Response::sendJSON(const std::string& json) {
 	this -> throwIsSent();
 	this -> content_type = "application/json";
-	this -> content = content;
+	this -> content = json;
 	this -> send();
 }
 
@@ -63,7 +89,7 @@ void Response::redirect(const std::string& url) {
  * Get response headers head text.
  * @return headers head (version, code, message).
  */
-std::string Response::getHead() {
+std::string Response::getHead() const {
 	std::string head = "";
 
 	head.append(this -> version + " ");
@@ -77,11 +103,11 @@ std::string Response::getHead() {
  * Get response headers redirect location.
  * @return headers location if redirected.
  */
-std::string Response::getRedirect() {
+std::string Response::getRedirect() const {
 	std::string redirect = "";
 
 	if (this -> isRedirected()) {
-		redirect = "location: " + this -> content + "\r\n";
+		redirect = "Location: " + this -> content + "\r\n";
 	}
 
 	return redirect;
@@ -91,11 +117,11 @@ std::string Response::getRedirect() {
  * Get response headers content type and charset.
  * @return headers content type and charset.
  */
-std::string Response::getContentType() {
+std::string Response::getContentType() const {
 	std::string content_type = "";
 
 	if (!this -> isRedirected()) {
-		content_type = "content-type: " + this -> content_type + "; " + this -> getCharset() + "\r\n";
+		content_type = "Content-Type: " + this -> content_type + "; " + this -> getCharset() + "\r\n";
 	}
 
 	return content_type;
@@ -105,7 +131,7 @@ std::string Response::getContentType() {
  * Get response content.
  * @return headers content.
  */
-std::string Response::getContent() {
+std::string Response::getContent() const {
 	std::string content = "";
 
 	if (!this -> isRedirected()) {
@@ -120,7 +146,7 @@ std::string Response::getContent() {
  * Get response headers charset.
  * @return headers charset.
  */
-std::string Response::getCharset() {
+std::string Response::getCharset() const {
 	return "charset=" + this -> charset;
 }
 
@@ -128,14 +154,33 @@ std::string Response::getCharset() {
  * Get response headers content length.
  * @return headers content length.
  */
-std::string Response::getContentLength() {
+std::string Response::getContentLength() const {
 	std::string content_length = "";
 
 	if (!this -> isRedirected()) {
-		content_length = "content-length: " + std::to_string(this -> content.length()) + "\r\n";
+		content_length = "Content-Length: " + std::to_string(this -> content.length()) + "\r\n";
 	}
 
 	return content_length;
+}
+
+/**
+ * Get response headers cookies to be set.
+ * @return headers cookies.
+ */
+std::string Response::getCookies() const {
+	std::string cookies = "";
+
+	for (const auto& [key, cookie] : this -> cookies) {
+		cookies.append("Set-Cookie: " + key + "=" + cookie.at("cookie"));
+		cookies.append(cookie.contains("age") ? "; Max-Age=" + cookie.at("age") : "");
+		cookies.append(cookie.contains("path") ? "; Path=" + cookie.at("path") : "");
+		cookies.append("; Secure; HttpOnly\r\n");
+	}
+
+	std::cout << cookies << std::endl;
+
+	return cookies;
 }
 
 /**
@@ -148,6 +193,7 @@ void Response::send() {
 	std::string response = "";
 	response.append(this -> getHead());
 	response.append(this -> getRedirect());
+	response.append(this -> getCookies());
 	response.append(this -> getContentType());
 	response.append(this -> getContentLength());
 	response.append(this -> getContent());
