@@ -20,8 +20,8 @@ Request::Request(const std::string& request):
 	cookies(setCookies(request)) {
 }
 
-nlohmann::json Request::setCookies(const std::string& request) {
-	nlohmann::json cookies_json;
+std::map<std::string, std::string> Request::setCookies(const std::string& request) {
+	std::map<std::string, std::string> cookies_map;
 	std::smatch matches;
 
 	// Extract cookies string from request header.
@@ -35,28 +35,24 @@ nlohmann::json Request::setCookies(const std::string& request) {
 
 			// Find cookie key and value with regex.
 			if (std::regex_search(cookie, matches, regex_cookie)) {
-				std::string key = matches[1].str();
-				std::string value = matches[2].str();
-
-				// Boolean cookie.
-				if (value == "true" || value == "false") {
-					cookies_json[key] = (value == "true");
-				} else {
-					// Number cookie.
-					try {
-						cookies_json[key] = std::stoi(value);
-
-					// String cookie.
-					} catch (...) {
-						cookies_json[key] = value;
-					}
-				}
+				cookies_map[matches[1].str()] = matches[2].str();
 			}
 			cookies.erase(0, pos + 2);
 		}
 	}
 
-	return cookies_json;
+	return cookies_map;
+}
+
+const std::string *const Request::getCookie(const std::string& cookie) const {
+	// Cookie found.
+	if (this -> cookies.find(cookie) != this -> cookies.end()) {
+		return &cookies.at(cookie);
+
+	// Cookie not found.
+	} else {
+		return nullptr;
+	}
 }
 
 nlohmann::json Request::setData(const std::string& request) {
@@ -75,7 +71,7 @@ nlohmann::json Request::setData(const std::string& request) {
  * Check if received request is valid.
  * @return true if valid.
  */
-const bool Request::isValid() const {
+bool Request::isValid() const {
 	return this -> method.compare("") != 0;
 }
 

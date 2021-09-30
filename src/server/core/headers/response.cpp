@@ -178,7 +178,7 @@ std::string Response::getCookies() const {
 		cookies.append("; Secure; HttpOnly\r\n");
 	}
 
-	std::cout << cookies << std::endl;
+	
 
 	return cookies;
 }
