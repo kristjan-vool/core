@@ -80,9 +80,13 @@ void CoreRouter::respond(const int& connection) {
 				response.status(404).send();
 			}
 
-		// Invalid request, respond with 404.
+		// Invalid method, respond with 404.
 		} else {
 			response.status(404).send();
 		}
-	}
+
+    // Invalid request, close connection.
+	} else {
+        close(connection);
+    }
 }

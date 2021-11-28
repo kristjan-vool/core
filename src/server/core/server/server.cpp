@@ -16,7 +16,6 @@
  */
 void respond(CoreRouter& router, int connection) {
 	router.respond(connection);
-	close(connection);
 }
 
 /**
@@ -133,10 +132,10 @@ int CoreServer::start() {
 
 		// Connection found.
 		if (connection != -1) {
-			// std::thread thread(respond, router, connection);
-			// thread.detach();
+			 std::thread thread(respond, std::ref(router), connection);
+			 thread.detach();
 
-			respond(router, connection);
+			// respond(router, connection);
 
 		// Connection not found.
 		} else {
