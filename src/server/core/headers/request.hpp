@@ -7,22 +7,43 @@
 
 #include <nlohmann/json.hpp>
 
+enum RequestState {
+    NONE,
+    METHOD_SET,
+    URL_SET,
+    VERSION_SET,
+    READ_COOKIE,
+    COOKIE_SET
+};
+
 class Request {
 	public:
-		Request(const std::string& request);
-		const std::string method;
-		const std::string url;
-		const std::string version;
-		const nlohmann::json data;
-		const std::map<std::string, std::string> cookies;
+		Request() {};
+        char buffer;
+        void bufferUpdated();
+        void lineReceived();
+        void setData(const std::string &data);
+
+        const std::string& getMethod() const;
+        const std::string& getURL() const;
+        const std::string& getVersion() const;
+        int getContentLength();
 
 		bool isValid() const;
-		const std::string *const getCookie(const std::string& cookie) const;
+		std::optional<std::string> getCookie(const std::string& cookie) const;
+        const nlohmann::json& getData() const;
 
 	private:
-		std::string setHead(const std::string& request, const int& position);
-		nlohmann::json setData(const std::string& request);
+        std::string buffer_line;
+
+        std::string method;
+        std::string url;
+        std::string version;
+        int content_length = 0;
+        nlohmann::json data;
+        std::map<std::string, std::string> cookies;
 		std::map<std::string, std::string> setCookies(const std::string& request);
+        RequestState state = NONE;
 };
 
 #endif

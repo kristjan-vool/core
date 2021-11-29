@@ -3,68 +3,107 @@
 #include <ostream>
 #include <regex>
 
-static std::regex regex_cookies("Cookie: (.*)");
-static std::regex regex_cookie("(.*)=(.*)");
-static std::regex regex_head("^(.*) (.*) (.*)\r\n");
-static std::regex regex_data("(.+)$");
+void Request::bufferUpdated() {
+    if (buffer == 10 || buffer == 13 || buffer == 32) {
+        if (buffer == 10) {
+            lineReceived();
+            buffer_line = "";
+        }
 
-/**
- * HTTP Request Headers.
- * @param request Request headers text.
- */
-Request::Request(const std::string& request):
-	method (setHead(request, 1)),
-	url    (setHead(request, 2)),
-	version(setHead(request, 3)),
-	data   (setData(request)),
-	cookies(setCookies(request)) {
+        if (state == NONE) {
+            state = METHOD_SET;
+        } else if (state == METHOD_SET) {
+            state = URL_SET;
+        } else if (state == URL_SET) {
+            state = VERSION_SET;
+        }
+    } else {
+        buffer_line += buffer;
+        if (state == NONE) {
+            method += buffer;
+        } else if (state == METHOD_SET) {
+            url += buffer;
+        } else if (state == URL_SET) {
+            version += buffer;
+        }
+    }
 }
 
-std::map<std::string, std::string> Request::setCookies(const std::string& request) {
+void Request::lineReceived() {
+    if (buffer_line.starts_with("Cookie:")) {
+        this -> cookies = setCookies(buffer_line.substr(7));
+    } else if (buffer_line.starts_with("Content-Length:")) {
+        this -> content_length = std::stoi(buffer_line);
+    }
+}
+
+int Request::getContentLength() {
+    return content_length;
+}
+
+std::map<std::string, std::string> Request::setCookies(const std::string& cookies) {
 	std::map<std::string, std::string> cookies_map;
-	std::smatch matches;
+
+    std::string key;
+    std::string value;
+    bool key_set = false;
 
 	// Extract cookies string from request header.
-	if (std::regex_search(request, matches, regex_cookies)) {
-		std::string cookies = matches[1].str() + "; ";
-		size_t pos = 0;
+    for (const char &c : cookies) {
+        if (c == '=') {
+            key_set = true;
+        } else if (c == ';') {
+            cookies_map[key] = value;
+            key = "";
+            value = "";
+            key_set = false;
+        } else if (!key_set) {
+            key += c;
+        } else {
+            value += c;
+        }
+    }
 
-		// Split cookies by ;
-		while ((pos = cookies.find("; ")) != std::string::npos) {
-			std::string cookie = cookies.substr(0, pos);
-
-			// Find cookie key and value with regex.
-			if (std::regex_search(cookie, matches, regex_cookie)) {
-				cookies_map[matches[1].str()] = matches[2].str();
-			}
-			cookies.erase(0, pos + 2);
-		}
-	}
+    if (!key.empty() && !value.empty()) {
+        cookies_map[key] = value;
+    }
 
 	return cookies_map;
 }
 
-const std::string *const Request::getCookie(const std::string& cookie) const {
+std::optional<std::string> Request::getCookie(const std::string& cookie) const {
 	// Cookie found.
 	if (this -> cookies.find(cookie) != this -> cookies.end()) {
-		return &cookies.at(cookie);
+		return cookies.at(cookie);
 
 	// Cookie not found.
 	} else {
-		return nullptr;
+		return std::nullopt;
 	}
 }
 
-nlohmann::json Request::setData(const std::string& request) {
+const nlohmann::json& Request::getData() const {
+    return data;
+}
+
+const std::string& Request::getMethod() const {
+    return method;
+}
+
+const std::string& Request::getURL() const {
+    return url;
+}
+
+const std::string& Request::getVersion() const {
+    return version;
+}
+
+void Request::setData(const std::string& data) {
 	std::smatch matches;
 
 	try {
-		if (std::regex_search(request, matches, regex_data)) {
-			return nlohmann::json::parse(matches[0].str());
-		}
+        this -> data = nlohmann::json::parse(matches[0].str());
 	} catch (...) {}
-
-	return {};
 }
 
 /**
@@ -72,18 +111,5 @@ nlohmann::json Request::setData(const std::string& request) {
  * @return true if valid.
  */
 bool Request::isValid() const {
-	return this -> method.compare("") != 0;
-}
-
-/**
- * Set request headers head (method, url, version).
- * @param  request Request headers text.
- * @param  pos     Position of head to extract.
- * @return         Head part from given position.
- */
-std::string Request::setHead(const std::string& request, const int& position) {
-	std::smatch matches;
-	std::regex_search(request, matches, regex_head);
-
-	return matches[position];
+	return !method.empty() && !url.empty() && !version.empty();
 }

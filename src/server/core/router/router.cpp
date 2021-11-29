@@ -23,56 +23,63 @@ void CoreRouter::route(const std::string& method, const std::string& url, void (
  * @param connection Client request.
  */
 void CoreRouter::respond(const int& connection) {
-	char buffer; int end = 0;
-	std::string request_header = "";
+    // Generate request headers.
+    Request request = Request();
+
+	int end = 0;
 
 	// Read request header without content by 1 char until 2 newlines.
 	while (end != 4) {
-		read(connection , &buffer, 1);
-		end = (buffer == 10 || buffer == 13) ? end + 1 : 0;
-		request_header += buffer;
+		read(connection , &request.buffer, 1);
+        request.bufferUpdated();
+		end = (request.buffer == 10 || request.buffer == 13) ? end + 1 : 0;
 	}
 
 	std::smatch matches;
 
 
 	// Find content length.
-	if (std::regex_search(request_header, matches, regex_content)) {
-		int content_length = std::stoi(matches[1].str());
-
+	if (request.getContentLength()) {
+        std::string data;
 		// Read content to request header.
-		for (int i = 0; i < content_length; i++) {
-			read(connection , &buffer, 1);
-			request_header += buffer;
+		for (int i = 0; i < request.getContentLength(); i++) {
+			read(connection , &request.buffer, 1);
+            data += request.buffer;
 		}
-	}
 
-	// Generate request headers.
-	const Request request = Request(request_header);
+        request.setData(data);
+	}
 
 	// Valid request.
 	if (request.isValid()) {
 		Response response = Response(connection);
 
 		// Check if method is allowed.
-		if (this -> routes.find(request.method) != this -> routes.end()) {
-			auto routes = this -> routes.at(request.method);
+		if (this -> routes.find(request.getMethod()) != this -> routes.end()) {
+			auto routes = this -> routes.at(request.getMethod());
 
 			// Check if route is allowed.
 			// route -> first is route regex.
 			// route -> second is route method to use for routing.
 			for (auto route = routes.begin(); route != routes.end(); route++) {
-				std::regex r(route -> first);
-				std::smatch match;
-				std::regex_search(request.url.begin(), request.url.end(), match, r);
+                // Regex.
+                if (route -> first.find("*") != std::string::npos) {
+                    std::regex r(route -> first);
+                    std::smatch match;
+                    std::regex_search(request.getURL(), match, r);
 
-				// Route regex matches request url.
-				if (match.size() > 0) {
-					this -> routes.at(request.method).at(route -> first)(request, response);
+                    // Route regex matches request url.
+                    if (match.size() > 0) {
+                        this -> routes.at(request.getMethod()).at(route -> first)(request, response);
 
-					// Route found, break routes looping.
-					break;
-				}
+                        // Route found, break routes looping.
+                        break;
+                    }
+
+                // Not regex.
+                } else if (request.getURL() == route -> first) {
+                    this -> routes.at(request.getMethod()).at(route -> first)(request, response);
+                }
 			}
 
 			// Route not found, respond with 404.
