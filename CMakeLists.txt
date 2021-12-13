@@ -5,10 +5,11 @@ project(core
 )
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include(FetchContent)
 FetchContent_Declare(json
-    GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
     GIT_TAG v3.10.4
 )
 

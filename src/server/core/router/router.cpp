@@ -1,13 +1,7 @@
 #include <core/router/router.hpp>
 
 #include <string>
-#include <unistd.h>
-#include <iostream>
-#include <ostream>
-#include <stdexcept>
 #include <regex>
-
-static std::regex regex_content("Content-Length: (.+)");
 
 /**
  * Add route to the list of routes.

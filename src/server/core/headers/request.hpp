@@ -11,9 +11,7 @@ enum RequestState {
     NONE,
     METHOD_SET,
     URL_SET,
-    VERSION_SET,
-    READ_COOKIE,
-    COOKIE_SET
+    VERSION_SET
 };
 
 class Request {
