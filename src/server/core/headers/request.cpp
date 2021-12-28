@@ -33,7 +33,7 @@ void Request::lineReceived() {
     if (buffer_line.starts_with("Cookie:")) {
         this -> cookies = setCookies(buffer_line.substr(7));
     } else if (buffer_line.starts_with("Content-Length:")) {
-        this -> content_length = std::stoi(buffer_line);
+        this -> content_length = std::stoi(buffer_line.substr(15));
     }
 }
 
@@ -99,10 +99,8 @@ const std::string& Request::getVersion() const {
 }
 
 void Request::setData(const std::string& data) {
-	std::smatch matches;
-
 	try {
-        this -> data = nlohmann::json::parse(matches[0].str());
+        this -> data = nlohmann::json::parse(data);
 	} catch (...) {}
 }
 
