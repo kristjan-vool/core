@@ -10,18 +10,18 @@
 
 class CoreServer {
 	public:
-		CoreServer(CoreRouter& router, const unsigned int port, const unsigned int connections);
+		CoreServer(CoreRouter &router, const unsigned int port, const unsigned int connections);
 
 		// Routes.
-		void get(const std::string& url, void (*route)(const Request&, Response&));
-		void get(const std::string& url, const std::string& content);
-		void post(const std::string& url, void (*route)(const Request&, Response&));
-		void post(const std::string& url, const std::string& content);
+		void get(const std::string &url, void (*route)(const Request&, Response&));
+		void get(const std::string &url, const std::string &content);
+		void post(const std::string &url, void (*route)(const Request&, Response&));
+		void post(const std::string &url, const std::string &content);
 
 		int start();
 
 	private:
-		CoreRouter& router;
+		CoreRouter &router;
 
 		const unsigned int port;
 		const unsigned int connections;
@@ -35,11 +35,11 @@ class CoreServer {
 		sockaddr_in  address;
 		unsigned int address_size;
 
-		void createSocket      (int& server);
-		void configureSocket   (int& server);
-		void startListener     (int& server);
-		void bindSocketAddress (int& server, sockaddr_in& server_address);
-		void createAddress     (sockaddr_in& address, unsigned int& address_size);
+		void createSocket      (int &server);
+		void configureSocket   (int &server);
+		void startListener     (int &server);
+		void bindSocketAddress (int &server, sockaddr_in &server_address);
+		void createAddress     (sockaddr_in &address, unsigned int &address_size);
 };
 
 #endif

@@ -7,7 +7,7 @@
 
 class Response {
 	public:
-		Response(const int& connection);
+		Response(const int &connection);
 
 		std::string version      = "HTTP/1.1";
 		unsigned int status_code = 200;
@@ -15,22 +15,22 @@ class Response {
 		std::string charset      = "utf-8";
 		std::string content      = "";
 
-		Response& type(const std::string& content_type);
-		Response& status(const unsigned int& status_code);
+		Response &type(const std::string &content_type);
+		Response &status(const unsigned int &status_code);
 
 		bool isSent() const;
 		bool isRedirected() const;
 
-		void sendJSON(const std::string& json);
+		void sendJSON(const std::string &json);
 		void send();
-		void send(const std::string& content);
-		void redirect(const std::string& url);
+		void send(const std::string &content);
+		void redirect(const std::string &url);
 
-		void setCookie(const std::string &key, const std::string& value);
-		void setCookie(const std::string &key, const std::string& value, const std::string& path, const int& age);
+		void setCookie(const std::string &key, const std::string &value);
+		void setCookie(const std::string &key, const std::string &value, const std::string &path, const int &age);
 
 	private:
-		const int& connection;
+		const int &connection;
 		bool sent = false;
 		std::map<std::string, std::map<std::string, std::string>> cookies;
 

@@ -14,7 +14,7 @@
  * @param router     Router to use.
  * @param connection Connection to respond to.
  */
-void respond(CoreRouter& router, int connection) {
+void respond(CoreRouter &router, int connection) {
 	router.respond(connection);
 }
 
@@ -23,7 +23,7 @@ void respond(CoreRouter& router, int connection) {
  * @param port        Port to listen on.
  * @param connections Number of parallel allowed connections.
  */
-CoreServer::CoreServer(CoreRouter& router, const unsigned int port, const unsigned int connections):
+CoreServer::CoreServer(CoreRouter &router, const unsigned int port, const unsigned int connections):
 	router(router), port(port), connections(connections) {
 		this -> createSocket(this -> server);
 		this -> configureSocket(this -> server);
@@ -37,7 +37,7 @@ CoreServer::CoreServer(CoreRouter& router, const unsigned int port, const unsign
  * @param url   Request url.
  * @param route Route method.
  */
-void CoreServer::get(const std::string& url, void (*route)(const Request&, Response&)) {
+void CoreServer::get(const std::string &url, void (*route)(const Request&, Response&)) {
 	router.route("GET", url, route);
 }
 
@@ -46,7 +46,7 @@ void CoreServer::get(const std::string& url, void (*route)(const Request&, Respo
  * @param url   Request url.
  * @param route Route method.
  */
-void CoreServer::post(const std::string& url, void (*route)(const Request&, Response&)) {
+void CoreServer::post(const std::string &url, void (*route)(const Request&, Response&)) {
 	router.route("POST", url, route);
 }
 
@@ -54,7 +54,7 @@ void CoreServer::post(const std::string& url, void (*route)(const Request&, Resp
  * Create server socket.
  * @param server Server socket.
  */
-void CoreServer::createSocket(int& server) {
+void CoreServer::createSocket(int &server) {
 	server = socket(
 		this -> family,
 		this -> type,
@@ -71,7 +71,7 @@ void CoreServer::createSocket(int& server) {
  * Configure server socket.
  * @param server Server socket.
  */
-void CoreServer::configureSocket(int& server) {
+void CoreServer::configureSocket(int &server) {
 	int conf = 1;
 
 	if (
@@ -88,7 +88,7 @@ void CoreServer::configureSocket(int& server) {
  * Configure address.
  * @param address Server address.
  */
-void CoreServer::createAddress(sockaddr_in& address, unsigned int& address_size) {
+void CoreServer::createAddress(sockaddr_in &address, unsigned int &address_size) {
 	address_size = sizeof(address);
 	memset(&address, 0, address_size);
 	address.sin_family      = this -> family;
@@ -101,8 +101,8 @@ void CoreServer::createAddress(sockaddr_in& address, unsigned int& address_size)
  * @param server  Server socket.
  * @param address Server address.
  */
-void CoreServer::bindSocketAddress(int& server, sockaddr_in& address) {
-	if (bind(server, (struct sockaddr*)& address, sizeof(address)) == -1) {
+void CoreServer::bindSocketAddress(int &server, sockaddr_in &address) {
+	if (bind(server, (struct sockaddr*) &address, sizeof(address)) == -1) {
 		perror("Server address already binded: ");
 		exit(EXIT_FAILURE);
 	}
@@ -112,7 +112,7 @@ void CoreServer::bindSocketAddress(int& server, sockaddr_in& address) {
  * Start server connections listener.
  * @param server socket
  */
-void CoreServer::startListener(int& server) {
+void CoreServer::startListener(int &server) {
 	if (listen(server, this -> connections) == -1) {
 		perror("Unable to listen on port: ");
 		exit(EXIT_FAILURE);
@@ -132,10 +132,10 @@ int CoreServer::start() {
 
 		// Connection found.
 		if (connection != -1) {
-			 std::thread thread(respond, std::ref(router), connection);
-			 thread.detach();
+			std::thread thread(respond, std::ref(router), connection);
+			thread.detach();
 
-             // respond(router, connection);
+			// respond(router, connection);
 
 		// Connection not found.
 		} else {

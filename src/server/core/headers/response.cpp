@@ -10,7 +10,7 @@
  * HTTP Response Headers.
  * @param connection Request connection where to respond.
  */
-Response::Response(const int& connection):
+Response::Response(const int &connection):
 	connection(connection) {
 }
 
@@ -19,7 +19,7 @@ Response::Response(const int& connection):
  * @param key   - Cookie key.
  * @param value - Cookie value.
  */
-void Response::setCookie(const std::string& key, const std::string& value) {
+void Response::setCookie(const std::string &key, const std::string &value) {
 	std::map<std::string, std::string> cookie;
 	cookie["cookie"] = value;
 
@@ -31,7 +31,7 @@ void Response::setCookie(const std::string& key, const std::string& value) {
  * @param key   - Cookie key.
  * @param value - Cookie value.
  */
-void Response::setCookie(const std::string& key, const std::string& value, const std::string& path, const int& age) {
+void Response::setCookie(const std::string &key, const std::string &value, const std::string &path, const int &age) {
 	std::map<std::string, std::string> cookie;
 	cookie["cookie"] = value;
 	cookie["path"] = path;
@@ -44,7 +44,7 @@ void Response::setCookie(const std::string& key, const std::string& value, const
  * Send response to the request as JSON.
  * @param content JSON string.
  */
-void Response::sendJSON(const std::string& json) {
+void Response::sendJSON(const std::string &json) {
 	this -> throwIsSent();
 	this -> content_type = "application/json";
 	this -> content = json;
@@ -56,7 +56,7 @@ void Response::sendJSON(const std::string& json) {
  * @param  content_type Content-Type to set for headers.
  * @return              self.
  */
-Response& Response::type(const std::string& content_type) {
+Response &Response::type(const std::string &content_type) {
 	this -> throwIsSent();
 	this -> content_type = content_type;
 	return *this;
@@ -67,7 +67,7 @@ Response& Response::type(const std::string& content_type) {
  * @param  status_code HTTP status code.
  * @return             self.
  */
-Response& Response::status(const unsigned int& status_code) {
+Response &Response::status(const unsigned int &status_code) {
 	this -> throwIsSent();
 	this -> status_code = status_code;
 	return *this;
@@ -77,7 +77,7 @@ Response& Response::status(const unsigned int& status_code) {
  * Default response redirect.
  * @param url to redirect to.
  */
-void Response::redirect(const std::string& url) {
+void Response::redirect(const std::string &url) {
 	this -> throwIsSent();
 	this -> status_code = 302;
 	this -> content = url;
@@ -171,14 +171,14 @@ std::string Response::getContentLength() const {
 std::string Response::getCookies() const {
 	std::string cookies = "";
 
-	for (const auto& [key, cookie] : this -> cookies) {
+	for (const auto &[key, cookie] : this -> cookies) {
 		cookies.append("Set-Cookie: " + key + "=" + cookie.at("cookie"));
 		cookies.append(cookie.contains("age") ? "; Max-Age=" + cookie.at("age") : "");
 		cookies.append(cookie.contains("path") ? "; Path=" + cookie.at("path") : "");
 		cookies.append("; Secure; HttpOnly\r\n");
 	}
 
-	
+
 
 	return cookies;
 }
@@ -210,7 +210,7 @@ void Response::send() {
  * Send response to the request.
  * @param content Content to send to the request.
  */
-void Response::send(const std::string& content) {
+void Response::send(const std::string &content) {
 	this -> content = content;
 	this -> send();
 }
