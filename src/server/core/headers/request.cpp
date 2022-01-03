@@ -25,6 +25,20 @@ const std::string &Request::getURL() const {
 }
 
 /**
+ * Get header query.
+ */
+const std::string &Request::getQuery() const {
+	return query;
+}
+
+/**
+ * Get header path.
+ */
+const std::string &Request::getPath() const {
+	return path;
+}
+
+/**
  * Get header version.
  */
 const std::string &Request::getVersion() const {
@@ -119,10 +133,13 @@ void Request::setDataFromURL() {
 	const size_t question = url.find('?');
 
 	if (question != std::string::npos) {
+		this -> path = url.substr(0, question);
+		this -> query = url.substr(question + 1);
+
 		std::string data = url.substr(question + 1);
 		size_t symbol_equal, symbol_and, split;
 
-		while((symbol_equal = data.find('=')) != std::string::npos) {
+		while ((symbol_equal = data.find('=')) != std::string::npos) {
 			std::string key = data.substr(0, symbol_equal);
 			std::string value = data.substr(symbol_equal + 1);
 			split = key.length();
@@ -136,6 +153,11 @@ void Request::setDataFromURL() {
 			this -> data[key] = value;
 			data = data.substr(split);
 		}
+
+	// No query found.
+	} else {
+		this -> path = this -> url;
+		this -> query = "";
 	}
 }
 

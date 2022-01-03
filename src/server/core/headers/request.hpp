@@ -24,6 +24,8 @@ class Request {
 
 		const std::string &getMethod() const;
 		const std::string &getURL() const;
+		const std::string &getQuery() const;
+		const std::string &getPath() const;
 		const std::string &getVersion() const;
 		const int &getContentLength() const;
 
@@ -36,6 +38,8 @@ class Request {
 		std::string buffer_line;
 		std::string method;
 		std::string url;
+		std::string query;
+		std::string path;
 		std::string version;
 		int content_length = 0;
 		nlohmann::json data;
