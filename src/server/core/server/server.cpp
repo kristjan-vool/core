@@ -126,7 +126,7 @@ int CoreServer::start() {
 	std::cout << "Server running on port: " << this -> port << std::endl;
 
 	// Server main loop.
-	while(true) {
+	while (true) {
 		// Check for connection.
 		int connection = (accept(server, (struct sockaddr*) &address, (socklen_t*) &address_size));
 
@@ -141,7 +141,6 @@ int CoreServer::start() {
 		} else {
 			perror("Request failed: ");
 			exit(EXIT_FAILURE);
-			close(connection);
 		}
 	}
 
