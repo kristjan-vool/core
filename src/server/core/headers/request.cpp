@@ -1,13 +1,17 @@
 #include <core/headers/request.hpp>
 #include <iostream>
 #include <ostream>
-#include <regex>
+#include <boost/algorithm/string.hpp>
 
-/**
- * Get data sent trough body and url.
- */
-const nlohmann::json &Request::getData() const {
-	return data;
+Request::Request(std::string &headers):
+	method (this -> readSegment  (headers)),
+	url    (this -> readSegment  (headers)),
+	path   (this -> readPathQuery(this -> url, true)),
+	query  (this -> readPathQuery(this -> url, false)),
+	version(this -> readSegment  (headers)),
+	cookies(this -> readCookies  (headers)),
+	data   (this -> readData     (headers, this -> query))
+{
 }
 
 /**
@@ -25,17 +29,17 @@ const std::string &Request::getURL() const {
 }
 
 /**
- * Get header query.
- */
-const std::string &Request::getQuery() const {
-	return query;
-}
-
-/**
  * Get header path.
  */
 const std::string &Request::getPath() const {
 	return path;
+}
+
+/**
+ * Get header query.
+ */
+const std::string &Request::getQuery() const {
+	return query;
 }
 
 /**
@@ -46,161 +50,169 @@ const std::string &Request::getVersion() const {
 }
 
 /**
- * Set data from header body.
+ * Read segment where seperator is space or newline.
+ * @param  headers - Fully read request headers that will be modified after this method is called.
+ * @return segment and modify the source headers string.
  */
-void Request::setData(const std::string &data) {
-	try {
-		this -> data.update(nlohmann::json::parse(data));
-	} catch (...) {}
+std::string Request::readSegment(std::string &headers) const {
+	std::string segment;
+
+	for (auto iterator = headers.begin(); iterator != headers.end(); iterator++) {
+		if (*iterator == ' ' || *iterator == '\n' || *iterator == '\r') break;
+		segment += *iterator;
+	}
+
+	headers = headers.substr(segment.length() + 1);
+	return segment;
 }
 
 /**
- * Check if received request is valid.
- * @return true if valid.
+ * Read path or query from url without modifying any sources.
+ * @param  url  - URL read from headers.
+ * @param  path - True if reading path, false if reading query.
+ * @return path or query from URL.
  */
-bool Request::isValid() const {
-	return !method.empty() && !url.empty() && !version.empty();
+std::string Request::readPathQuery(const std::string &url, const bool &path) const {
+	std::size_t query_start = url.find('?');
+
+	// Query found.
+	if (query_start != std::string::npos) {
+		if (path) {
+			return url.substr(0, query_start);
+		} else {
+			return url.substr(query_start);
+		}
+
+	// Query not found.
+	} else return path ? url : "";
 }
 
 /**
- * Get header cookies.
+ * Read headers data, body data and query data.
+ * @param headers - Fully read request headers that will be modified after this method is called.
+ * @param query - Data query that is part of the URL.
+ * @return map of any data.
  */
-std::map<std::string, std::string> Request::getCookies() const {
+std::map<std::string, std::any> Request::readData(std::string &headers, const std::string &query) const {
+	std::map<std::string, std::any> data;
+
+	// Query data.
+	if (!query.empty()) {
+		data = this -> readPairs(query.substr(1), "=", "&");
+	}
+
+	return data;
+}
+
+/**
+ * Get reference to all data read from headers, body and url query.
+ */
+const std::map<std::string, std::any> &Request::getData() const {
+	return this -> data;
+}
+
+/**
+ * Get copy of one specific data read from headers, body or url query. Value can be empty.
+ * @param  key - Data key to look for.
+ * @return copy from data that can be empty.
+ */
+std::any Request::getData(const std::string &key) const {
+	std::any data;
+
+	// Get data from specific location.
+	if (this -> data.contains(key)) {
+		data = this -> data.at(key);
+	}
+
+	return data;
+}
+
+/**
+ * Get reference to all cookies.
+ */
+const std::map<std::string, std::any> &Request::getCookies() const {
+	return this -> cookies;
+}
+
+/**
+ * Get copy of one specific cookie. Value can be empty.
+ * @param  key - Cookie name to look for.
+ * @return copy from cookies that can be empty.
+ */
+std::any Request::getCookie(const std::string &key) const {
+	std::any cookie;
+
+	// Get data from specific location.
+	if (this -> cookies.contains(key)) {
+		cookie = this -> cookies.at(key);
+	}
+
+	return cookie;
+}
+
+/**
+ * Read cookies from request headers.
+ * @param headers - Fully read request headers that will be modified after this method is called.
+ * @return map of any values.
+ */
+std::map<std::string, std::any> Request::readCookies(std::string &headers) const {
+	std::map<std::string, std::any> cookies;
+
+	std::string headers_copy = boost::algorithm::to_lower_copy(headers);
+	size_t cookies_start = headers_copy.find("cookie: ");
+
+	if (cookies_start != std::string::npos) {
+		size_t cookies_end = headers_copy.find('\n', cookies_start);
+		cookies = this -> readPairs(headers.substr(cookies_start + 8, cookies_end), "=", ";");
+
+		// Remove cookies from headers.
+		headers = headers.substr(0, cookies_start) + headers.substr(cookies_end + 1);
+	}
+
 	return cookies;
 }
 
 /**
- * Get header cookie by cookie name.
- * @param cookie - Cookie name to get.
+ * General method to read pairs of data (for example query, cookies).
+ * @param source    - Source string where pairs are located.
+ * @param equal     - Equal symbol that splits key and value.
+ * @param separator - Separator symbol that splits key and value pairs.
+ * @return map of any values.
  */
-std::optional<std::string> Request::getCookie(const std::string &cookie) const {
-	// Cookie found.
-	if (this -> cookies.find(cookie) != this -> cookies.end()) {
-		return cookies.at(cookie);
+std::map<std::string, std::any> Request::readPairs(std::string source, const std::string &equal, const std::string &separator) const {
+	std::map<std::string, std::any> pairs;
 
-	// Cookie not found.
-	} else {
-		return std::nullopt;
-	}
-}
+	// Loop source until all pairs have been used.
+	size_t symbol_equal, symbol_separator, split;
+	while ((symbol_equal = source.find(equal)) != std::string::npos) {
+		std::string key = source.substr(0, symbol_equal);
+		std::string value = source.substr(symbol_equal + 1);
+		split = key.length();
 
-/**
- * Get header content length.
- */
-const int &Request::getContentLength() const {
-	return content_length;
-}
-
-/**
- * Header buffer updated.
- * Set header method, url and data, version.
- */
-void Request::bufferUpdated() {
-	const int ascii_newline = 10;
-	const int ascii_return = 13;
-	const int ascii_space = 32;
-
-	if (buffer == ascii_newline || buffer == ascii_return || buffer == ascii_space) {
-		if (buffer == ascii_newline) {
-			lineReceived();
-			buffer_line = "";
+		// Remove other keys/values from current value.
+		if ((symbol_separator = value.find(separator)) != std::string::npos) {
+			value = value.substr(0, symbol_separator);
+			split += 1;
 		}
+		split += value.length();
 
-		if (state == NONE) {
-			state = METHOD_SET;
-		} else if (state == METHOD_SET) {
-			state = URL_SET;
-			setDataFromURL();
-		} else if (state == URL_SET) {
-			state = VERSION_SET;
-		}
-	} else {
-		buffer_line += buffer;
-		if (state == NONE) {
-			method += buffer;
-		} else if (state == METHOD_SET) {
-			url += buffer;
-		} else if (state == URL_SET) {
-			version += buffer;
-		}
-	}
-}
-
-/**
- * Set header data from url parameters.
- */
-void Request::setDataFromURL() {
-	const size_t question = url.find('?');
-
-	if (question != std::string::npos) {
-		this -> path = url.substr(0, question);
-		this -> query = url.substr(question + 1);
-
-		std::string data = url.substr(question + 1);
-		size_t symbol_equal, symbol_and, split;
-
-		while ((symbol_equal = data.find('=')) != std::string::npos) {
-			std::string key = data.substr(0, symbol_equal);
-			std::string value = data.substr(symbol_equal + 1);
-			split = key.length();
-
-			if ((symbol_and = value.find('&')) != std::string::npos) {
-				value = value.substr(0, symbol_and);
-				split += 2;
-			}
-			split += value.length();
-
-			this -> data[key] = value;
-			data = data.substr(split);
-		}
-
-	// No query found.
-	} else {
-		this -> path = this -> url;
-		this -> query = "";
-	}
-}
-
-/**
- * Request header line received.
- * Check if line is cookies or content length.
- */
-void Request::lineReceived() {
-	if (buffer_line.starts_with("Cookie:")) {
-		this -> cookies = setCookies(buffer_line.substr(7));
-	} else if (buffer_line.starts_with("Content-Length:")) {
-		this -> content_length = std::stoi(buffer_line.substr(15));
-	}
-}
-
-/**
- * Set request cookies from header cookies line.
- * @param cookies - cookies line of text from header.
- */
-std::map<std::string, std::string> Request::setCookies(const std::string &cookies) {
-	std::map<std::string, std::string> cookies_map;
-	std::string key, value;
-	bool key_set = false;
-
-	// Extract cookies string from request header.
-	for (const char &c : cookies) {
-		if (c == '=') {
-			key_set = true;
-		} else if (c == ';') {
-			cookies_map[key] = value;
-			key = "";
-			value = "";
-			key_set = false;
-		} else if (!key_set) {
-			key += c;
+		// Boolean.
+		if (value == "false" || value == "true") {
+			pairs[key] = value == "true";
 		} else {
-			value += c;
+
+			// Integer.
+			try {
+				pairs[key] = std::stoi(value);
+
+			// String.
+			} catch (...) {
+				pairs[key] = value;
+			}
 		}
+		// Cut found pair from source.
+		source = source.substr(split);
 	}
 
-	if (!key.empty() && !value.empty()) {
-		cookies_map[key] = value;
-	}
-
-	return cookies_map;
+	return pairs;
 }

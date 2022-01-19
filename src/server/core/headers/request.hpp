@@ -2,51 +2,41 @@
 #define CORE_REQUEST_HPP
 
 #include <string>
-#include <optional>
 #include <map>
-
+#include <any>
 #include <nlohmann/json.hpp>
-
-enum RequestState {
-	NONE,
-	METHOD_SET,
-	URL_SET,
-	VERSION_SET
-};
 
 class Request {
 	public:
-		Request() {};
-		char buffer;
-		void bufferUpdated();
-		void lineReceived();
-		void setData(const std::string &data);
-
-		const std::string &getMethod() const;
-		const std::string &getURL() const;
-		const std::string &getQuery() const;
-		const std::string &getPath() const;
+		Request(std::string &headers);
+		const std::string &getMethod()  const;
+		const std::string &getURL()     const;
+		const std::string &getPath()    const;
+		const std::string &getQuery()   const;
 		const std::string &getVersion() const;
-		const int &getContentLength() const;
 
-		bool isValid() const;
-		std::optional<std::string> getCookie(const std::string &cookie) const;
-		std::map<std::string, std::string> getCookies() const;
-		const nlohmann::json &getData() const;
+		// Data.
+		const std::map<std::string, std::any> &getData() const;
+		std::any getData(const std::string &key) const;
+
+		// Cookies.
+		const std::map<std::string, std::any> &getCookies() const;
+		std::any getCookie(const std::string &key) const;
 
 	private:
-		std::string buffer_line;
-		std::string method;
-		std::string url;
-		std::string query;
-		std::string path;
-		std::string version;
-		int content_length = 0;
-		nlohmann::json data;
-		std::map<std::string, std::string> cookies;
-		std::map<std::string, std::string> setCookies(const std::string &request);
-		RequestState state = NONE;
-		void setDataFromURL();
+		const std::string method;
+		const std::string url;
+		const std::string path;
+		const std::string query;
+		const std::string version;
+		std::map<std::string, std::any> data;
+		std::map<std::string, std::any> cookies;
+
+		std::string readSegment(std::string &headers) const;
+		std::string readPathQuery(const std::string &url, const bool &path) const;
+		std::map<std::string, std::any> readData(std::string &headers, const std::string &query) const;
+		std::map<std::string, std::any> readCookies(std::string &request) const;
+		std::map<std::string, std::any> readPairs(std::string source, const std::string &equal, const std::string &seperator) const;
 };
 
 #endif

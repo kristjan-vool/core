@@ -2,6 +2,8 @@
 
 #include <string>
 #include <regex>
+#include <iostream>
+#include <sys/socket.h>
 
 /**
  * Add route to the list of routes.
@@ -17,35 +19,17 @@ void CoreRouter::route(const std::string &method, const std::string &url, void (
  * @param connection Client request.
  */
 void CoreRouter::respond(const int &connection) {
-	// Generate request headers.
-	Request request = Request();
+	std::string headers;
+	char buffer = 0;
 
-	int end = 0;
-
-	// Read request header without content by 1 char until 2 newlines.
-	while (end != 4) {
-		read(connection , &request.buffer, 1);
-		request.bufferUpdated();
-		end = (request.buffer == 10 || request.buffer == 13) ? end + 1 : 0;
+	// Read request headers.
+	while (recv(connection, &buffer, 1, (buffer == 0 ? 0 : MSG_DONTWAIT)) > 0) {
+		headers += buffer;
 	}
 
-	std::smatch matches;
-
-
-	// Find content length.
-	if (request.getContentLength()) {
-		std::string data;
-		// Read content to request header.
-		for (int i = 0; i < request.getContentLength(); i++) {
-			read(connection , &request.buffer, 1);
-			data += request.buffer;
-		}
-
-		request.setData(data);
-	}
-
-	// Valid request.
-	if (request.isValid()) {
+	// Generate Request and Response.
+	try {
+		Request request = Request(headers);
 		Response response = Response(connection);
 
 		// Check if method is allowed.
@@ -56,7 +40,7 @@ void CoreRouter::respond(const int &connection) {
 			// route -> first is route regex.
 			// route -> second is route method to use for routing.
 			for (auto route = routes.begin(); route != routes.end(); route++) {
-				// Regex.
+				// Route is defined with regex.
 				if (route -> first.find("*") != std::string::npos) {
 					std::regex r(route -> first);
 					std::smatch match;
@@ -70,24 +54,25 @@ void CoreRouter::respond(const int &connection) {
 						break;
 					}
 
-				// Not regex.
+				// Route is specific.
 				} else if (request.getURL() == route -> first) {
 					this -> routes.at(request.getMethod()).at(route -> first)(request, response);
+					break;
 				}
 			}
 
-			// Route not found, respond with 404.
+			// Invalid route or invalid route handler. Respond with 404.
 			if (!response.isSent()) {
 				response.status(404).send();
 			}
 
-		// Invalid method, respond with 404.
+		// Invalid method. Respond with 404.
 		} else {
 			response.status(404).send();
 		}
 
-	// Invalid request, close connection.
-	} else {
+	// Invalid request headers.
+	} catch (...) {
 		close(connection);
 	}
 }
