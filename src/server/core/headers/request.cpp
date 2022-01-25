@@ -1,52 +1,100 @@
 #include <core/headers/request.hpp>
 #include <iostream>
-#include <ostream>
 #include <boost/algorithm/string.hpp>
+#include <nlohmann/json.hpp>
 
 Request::Request(std::string &headers):
+	headers(headers),
 	method (this -> readSegment  (headers)),
 	url    (this -> readSegment  (headers)),
 	path   (this -> readPathQuery(this -> url, true)),
 	query  (this -> readPathQuery(this -> url, false)),
 	version(this -> readSegment  (headers)),
-	cookies(this -> readCookies  (headers)),
-	data   (this -> readData     (headers, this -> query))
-{
+	content_type
+	       (this -> readLineValue(headers, "Content-Type")),
+	cookies(this -> readPairs    (this -> readLineValue(headers, "Cookie"), "=", ";")),
+	body   (this -> readBody     (headers)),
+	data   (this -> readData     (this -> query, this -> body, this -> content_type))
+{}
+
+/**
+ * Get raw headers.
+ */
+const std::string &Request::getHeaders() const {
+	return this -> headers;
 }
 
 /**
  * Get header method.
  */
 const std::string &Request::getMethod() const {
-	return method;
+	return this -> method;
 }
 
 /**
  * Get header URL.
  */
 const std::string &Request::getURL() const {
-	return url;
+	return this -> url;
 }
 
 /**
  * Get header path.
  */
 const std::string &Request::getPath() const {
-	return path;
+	return this -> path;
 }
 
 /**
  * Get header query.
  */
 const std::string &Request::getQuery() const {
-	return query;
+	return this -> query;
 }
 
 /**
  * Get header version.
  */
 const std::string &Request::getVersion() const {
-	return version;
+	return this -> version;
+}
+
+/**
+ * Get header content-type.
+ */
+const std::string &Request::getContentType() const {
+	return this -> content_type;
+}
+
+/**
+ * Get header content body.
+ */
+const std::string &Request::getBody() const {
+	return this -> body;
+}
+
+/**
+ * Read line value from headers.
+ * @param  headers - Fully read request headers that will be modified after this method is called.
+ * @param  key - Line key that will be lowercased.
+ * @return value of read line.
+ */
+std::string Request::readLineValue(std::string &headers, std::string key) const {
+	std::string headers_copy = boost::algorithm::to_lower_copy(headers);
+	key = boost::algorithm::to_lower_copy(key);
+	size_t start = headers_copy.find(key + ": ");
+	std::string value;
+
+
+	if (start != std::string::npos) {
+		size_t end = headers_copy.find('\n', start);
+		value = headers.substr(start + key.length() + 2, end - start - key.length() - 3);
+
+		// Remove read line from headers.
+		headers = headers.substr(0, start) + headers.substr(end + 1);
+	}
+
+	return value;
 }
 
 /**
@@ -93,13 +141,23 @@ std::string Request::readPathQuery(const std::string &url, const bool &path) con
  * @param query - Data query that is part of the URL.
  * @return map of any data.
  */
-std::map<std::string, std::any> Request::readData(std::string &headers, const std::string &query) const {
+std::map<std::string, std::any> Request::readData(const std::string &query, const std::string &body, const std::string &content_type) const {
 	std::map<std::string, std::any> data;
 
 	// Query data.
 	if (!query.empty()) {
 		data = this -> readPairs(query.substr(1), "=", "&");
 	}
+
+	// Body data - JSON.
+	if (content_type == "applications/json") { try {
+		nlohmann::json json = nlohmann::json::parse(body);
+		for (auto it = json.begin(); it != json.end(); it++) {
+			if (it.value().is_string()) {
+				data[it.key()] = it.value().get<std::string>();
+			}
+		}
+	} catch (...) {} }
 
 	return data;
 }
@@ -151,28 +209,6 @@ std::any Request::getCookie(const std::string &key) const {
 }
 
 /**
- * Read cookies from request headers.
- * @param headers - Fully read request headers that will be modified after this method is called.
- * @return map of any values.
- */
-std::map<std::string, std::any> Request::readCookies(std::string &headers) const {
-	std::map<std::string, std::any> cookies;
-
-	std::string headers_copy = boost::algorithm::to_lower_copy(headers);
-	size_t cookies_start = headers_copy.find("cookie: ");
-
-	if (cookies_start != std::string::npos) {
-		size_t cookies_end = headers_copy.find('\n', cookies_start);
-		cookies = this -> readPairs(headers.substr(cookies_start + 8, cookies_end), "=", ";");
-
-		// Remove cookies from headers.
-		headers = headers.substr(0, cookies_start) + headers.substr(cookies_end + 1);
-	}
-
-	return cookies;
-}
-
-/**
  * General method to read pairs of data (for example query, cookies).
  * @param source    - Source string where pairs are located.
  * @param equal     - Equal symbol that splits key and value.
@@ -215,4 +251,15 @@ std::map<std::string, std::any> Request::readPairs(std::string source, const std
 	}
 
 	return pairs;
+}
+
+std::string Request::readBody(std::string &headers) {
+	std::string body;
+
+	size_t start = headers.find("\r\n\r\n");
+	if (start != std::string::npos) {
+		body = headers.substr(start + 4);
+	}
+
+	return body;
 }

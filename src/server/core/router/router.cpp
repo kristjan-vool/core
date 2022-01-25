@@ -72,7 +72,8 @@ void CoreRouter::respond(const int &connection) {
 		}
 
 	// Invalid request headers.
-	} catch (...) {
+	} catch (const std::runtime_error &exception) {
+		std::cerr << exception.what() << std::endl;
 		close(connection);
 	}
 }
