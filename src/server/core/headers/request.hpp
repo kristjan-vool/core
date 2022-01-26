@@ -8,14 +8,14 @@
 class Request {
 	public:
 		Request(std::string &headers);
-		const std::string &getHeaders() const;
-		const std::string &getMethod()  const;
-		const std::string &getURL()     const;
-		const std::string &getPath()    const;
-		const std::string &getQuery()   const;
-		const std::string &getVersion() const;
+		const std::string &getHeaders()     const;
+		const std::string &getMethod()      const;
+		const std::string &getURL()         const;
+		const std::string &getPath()        const;
+		const std::string &getQuery()       const;
+		const std::string &getVersion()     const;
 		const std::string &getContentType() const;
-		const std::string &getBody() const;
+		const std::string &getBody()        const;
 
 		// Data.
 		const std::map<std::string, std::any> &getData() const;
@@ -37,7 +37,7 @@ class Request {
 		std::map<std::string, std::any> data;
 		std::map<std::string, std::any> cookies;
 
-		std::string readBody(std::string &headers);
+		std::string readBody(std::string &headers) const;
 		std::string readLineValue(std::string &headers, std::string key) const;
 		std::string readSegment(std::string &headers) const;
 		std::string readPathQuery(const std::string &url, const bool &path) const;

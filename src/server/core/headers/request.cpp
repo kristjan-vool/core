@@ -253,7 +253,7 @@ std::map<std::string, std::any> Request::readPairs(std::string source, const std
 	return pairs;
 }
 
-std::string Request::readBody(std::string &headers) {
+std::string Request::readBody(std::string &headers) const {
 	std::string body;
 
 	size_t start = headers.find("\r\n\r\n");
