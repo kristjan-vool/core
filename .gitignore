@@ -1,5 +1,4 @@
 build
-cmake-build-debug
+package-lock.json
+node_modules
 .idea
-src/server/boost
-src/server/json
