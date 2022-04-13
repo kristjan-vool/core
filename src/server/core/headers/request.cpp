@@ -17,6 +17,10 @@ Request::Request(std::string &headers):
 	data   (this -> readData     (this -> query, this -> body, this -> content_type))
 {}
 
+bool Request::isValid() const {
+	return true;
+}
+
 /**
  * Get raw headers.
  */

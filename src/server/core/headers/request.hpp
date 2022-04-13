@@ -8,22 +8,24 @@
 class Request {
 	public:
 		Request(std::string &headers);
-		const std::string &getHeaders()     const;
-		const std::string &getMethod()      const;
-		const std::string &getURL()         const;
-		const std::string &getPath()        const;
-		const std::string &getQuery()       const;
-		const std::string &getVersion()     const;
+		const std::string &getHeaders() const;
+		const std::string &getMethod() const;
+		const std::string &getURL() const;
+		const std::string &getPath() const;
+		const std::string &getQuery() const;
+		const std::string &getVersion() const;
 		const std::string &getContentType() const;
-		const std::string &getBody()        const;
+		const std::string &getBody() const;
 
 		// Data.
 		const std::map<std::string, std::any> &getData() const;
 		std::any getData(const std::string &key) const;
 
 		// Cookies.
-		const std::map<std::string, std::any> &getCookies() const;
+		const std::map<std::string, std::any>& getCookies() const;
 		std::any getCookie(const std::string &key) const;
+
+		bool isValid() const;
 
 	private:
 		const std::string headers;

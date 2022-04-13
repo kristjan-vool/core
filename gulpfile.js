@@ -1,8 +1,9 @@
 const path = require("path");
 const gulp = require("gulp");
+const gulp_run = require('gulp-run');
 const gulp_nodemon = require("gulp-nodemon");
 
-const tasks = [];
+const tasks = {};
 
 const config = {
 	environment: {
@@ -19,22 +20,24 @@ const dir = {
 	},
 };
 
+const sources = {
+	"cpp": [
+		path.join(dir.core.src, "server/core/**/*.cpp"),
+		path.join(dir.core.src, "server/core/**/*.hpp"),
+	]
+}
+
 const core_cpp = (done) => {
 	console.log("\r\nCompiling Core...");
-
-	gulp_nodemon({
-		watch: [dir.core.src, path.join(dir.core.root, "Makefile")],
-		ext: "hpp, cpp",
-		exec: `cd ${dir.core.root} && make -j`,
-	});
-
+	gulp_run(`cd ${dir.core.root} && make -j`).exec();
 	done();
 };
 
-tasks.push(core_cpp);
+tasks["core_cpp"] = core_cpp;
 
 module.exports = {
 	config,
 	dir,
 	tasks,
+	sources
 };
