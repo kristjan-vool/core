@@ -18,7 +18,7 @@ Request::Request(std::string &headers):
 {}
 
 bool Request::isValid() const {
-	return true;
+	return method.length() > 0 && url.length() > 0 && version.length() > 0;
 }
 
 /**
@@ -114,7 +114,10 @@ std::string Request::readSegment(std::string &headers) const {
 		segment += *iterator;
 	}
 
-	headers = headers.substr(segment.length() + 1);
+	if (segment.length() + 1 <= headers.length()) {
+		headers = headers.substr(segment.length() + 1);
+	}
+
 	return segment;
 }
 
