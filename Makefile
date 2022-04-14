@@ -30,7 +30,7 @@ files_depends = $(patsubst $(dir_build)%.o, $(dir_build)%.d, $(files_objects))
 
 gcc = g++
 gcc_include = -I $(dir_server) -I $(json_include) -I $(boost_include)
-gcc_flags = -std=c++20 $(gcc_include)
+gcc_flags = -g -std=c++20 $(gcc_include)
 
 libcore = $(dir_build)/libcore.so
 

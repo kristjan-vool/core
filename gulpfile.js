@@ -33,7 +33,7 @@ const core_cpp = (done) => {
 	done();
 };
 
-tasks["core_cpp"] = core_cpp;
+// tasks["core_cpp"] = core_cpp;
 
 module.exports = {
 	config,
