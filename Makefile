@@ -69,7 +69,7 @@ $(boost_include): $(boost_archive)
 	tar -xf $(boost_archive) -C $(boost_dir)
 	cp -r $(boost_dir)/boost_$(boost_version)/* $(boost_dir)/
 	rm -r $(boost_dir)/boost_$(boost_version)
-	cd $(boost_dir) && ./bootstrap.sh && ./b2 install --prefix=$(build)
+	cd $(boost_dir) && ./bootstrap.sh && ./b2 install --prefix=../$(boost_build)
 
 -include $(files_depends)
 
