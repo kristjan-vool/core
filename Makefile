@@ -5,11 +5,12 @@ color_yellow = \e[1;33m
 color_cyan = \e[1;36m
 color_reset = \e[0m
 
-dir_src = src
+dir_root = $(shell pwd)
+dir_src = $(dir_root)/src
 dir_server = $(dir_src)/server
 dir_core = $(dir_server)/core
-dir_thirdparty = ../thirdparty
-dir_build = build
+dir_thirdparty = $(dir_root)/../thirdparty
+dir_build = $(dir_root)/build
 
 json_version = 3.10.5
 json_url = https://github.com/nlohmann/json/archive/refs/tags/v$(json_version).tar.gz
@@ -21,7 +22,7 @@ boost_version = 1_78_0
 boost_url = https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_$(boost_version).tar.gz
 boost_dir = $(dir_thirdparty)/boost
 boost_archive = $(boost_dir)/boost_$(boost_version).tar.gz
-boost_build = $(boost_dir)/$(dir_build)
+boost_build = $(boost_dir)/build
 boost_include = $(boost_build)/include
 
 files_sources = $(shell find $(dir_core) -type f -name "*.cpp")
@@ -32,12 +33,12 @@ gcc = g++
 gcc_include = -I $(dir_server) -I $(json_include) -I $(boost_include)
 gcc_flags = -g -std=c++20 $(gcc_include)
 
-libcore = $(dir_build)/libcore.so
+lib_core = $(dir_build)/libcore.so
 
 # CORE linking
-$(libcore): $(json_include) $(boost_include) $(files_objects) Makefile
+$(lib_core): $(json_include) $(boost_include) $(files_objects) Makefile
 	@echo "$(color_cyan)\r\nCompiling $@ $(color_reset)"
-	$(gcc) $(gcc_flags) $(files_objects) -shared -o $(libcore)
+	$(gcc) $(gcc_flags) $(files_objects) -shared -o $(lib_core)
 	@echo "$(color_green)\r\nCompiled library $@ $(color_reset)"
 
 # CORE objects compiling
@@ -69,7 +70,7 @@ $(boost_include): $(boost_archive)
 	tar -xf $(boost_archive) -C $(boost_dir)
 	cp -r $(boost_dir)/boost_$(boost_version)/* $(boost_dir)/
 	rm -r $(boost_dir)/boost_$(boost_version)
-	cd $(boost_dir) && ./bootstrap.sh && ./b2 install --prefix=../$(boost_build)
+	cd $(boost_dir) && ./bootstrap.sh && ./b2 install --prefix=$(boost_build)
 
 -include $(files_depends)
 

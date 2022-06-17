@@ -22,7 +22,7 @@ class Request {
 		std::any getData(const std::string &key) const;
 
 		// Cookies.
-		const std::map<std::string, std::any>& getCookies() const;
+		const std::map<std::string, std::any> &getCookies() const;
 		std::any getCookie(const std::string &key) const;
 
 		bool isValid() const;
@@ -44,7 +44,7 @@ class Request {
 		std::string readSegment(std::string &headers) const;
 		std::string readPathQuery(const std::string &url, const bool &path) const;
 		std::map<std::string, std::any> readData(const std::string &query, const std::string &body, const std::string &content_type) const;
-		std::map<std::string, std::any> readPairs(std::string source, const std::string &equal, const std::string &seperator) const;
+		std::map<std::string, std::any> readPairs(std::string source, const std::string &equal, const std::string &separator) const;
 };
 
 #endif

@@ -102,7 +102,7 @@ std::string Request::readLineValue(std::string &headers, std::string key) const 
 }
 
 /**
- * Read segment where seperator is space or newline.
+ * Read segment where separator is space or newline.
  * @param  headers - Fully read request headers that will be modified after this method is called.
  * @return segment and modify the source headers string.
  */
