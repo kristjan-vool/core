@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "gulp": "^4.0.2",
-    "gulp-nodemon": "^2.5.0",
-    "gulp-run": "^1.7.1"
-  }
-}
